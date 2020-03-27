@@ -1,0 +1,77 @@
+logger:
+  level: info # panic,fatal,error,warn,info,debug,trace
+  timeFormat: "" # golang time format
+  color: true # active color on console
+  human: true # store log as human readable
+  file: "var/log/seekerr.%Y%m%d.log" # %Y%m%d is used for rotation. leave empty to disable file log
+
+services:
+  resty:
+    debug: false
+    timeout: 20s #golang duration
+    retry: 0 # zero for no retries
+    retryWaitTime: 1s
+    retryMaxWaitTime: 10s
+
+  trakt:
+    apiKey: ""
+
+  omdb:
+    apiKey: ""
+
+  guessIt:
+    type: "command" # webservice
+    path: "guessit"
+    # url: "http://192.168.1.100:5000/"
+
+  radarr:
+    url: "http://192.168.1.100:7878/"
+    apiKey: ""
+    rootFolder: "/movies/"
+    quality: "Bluray"
+    minimumAvailability: "inCinemas"
+    monitored: true
+    searchForMovie: false
+
+importer:
+  filter:
+    limit: 100 # limit the movies to process on each list
+    matchAllRatings: true # must match all existing ratings
+    ignoreMissingRatings: 1 # ignore if it's missing one rating provider
+    imdbVotes: 1000 # must have at least this votes
+    ratings: # minimum ratings for the film to have
+      rottenTomatoes: 75
+      imdb: 7.0
+      metacritic: 70
+
+  lists:
+    # name_of_list:
+    #   # The type of the feed, support 3 types
+    #   type: rss | trakt | imdb
+    #   # special urls for trakt type trakt://movies/trending, trakt://movies/popular, trakt://movies/anticipated, trakt://movies/boxoffice
+    #   url: ""
+    #   guessIt: true # only for rss and if it's necessary to parse the title to get the correct movie name or year
+    #
+    #   # you can override the global filters for a specific feed
+    #   filter:
+    #
+    rarbg:
+      type: "rss" # rss | trakt | imdb
+      url: "https://rarbgprx.org/rssdd_magnet.php?category=44"
+      guessIt: true
+
+    imdb:
+      type: "imdb" # rss | trakt | imdb
+      url: "https://www.imdb.com/list/ls016522954/?sort=list_order,asc&st_dt=&mode=detail&page=1&title_type=movie&user_rating=6.0%2C&ref_=ttls_ref_rt_usr"
+
+    traktTrending:
+      type: "trakt" # rss | trakt | imdb
+      # special urls trakt://movies/trending, trakt://movies/popular, trakt://movies/anticipated, trakt://movies/boxoffice
+      url: "trakt://movies/trending"
+
+    traktPublic:
+      type: "trakt" # rss | trakt | imdb
+      url: "https://trakt.tv/users/movistapp/lists/now-playing?sort=rank,asc"
+
+
+

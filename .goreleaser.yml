@@ -1,0 +1,55 @@
+project_name: seekerr
+env:
+  - GO111MODULE=on
+  - GOPROXY=https://proxy.golang.org
+before:
+  hooks:
+    - go mod download
+builds:
+  -
+    binary: seekerr
+    id: seekerr
+    ldflags: -s -w -X github.com/lightglitch/seekerr/common/seekerr.buildDate={{.Date}} -X github.com/lightglitch/seekerr/common/seekerr.commitHash={{ .ShortCommit }}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+      - freebsd
+      - netbsd
+      - openbsd
+      - dragonfly
+    goarch:
+      - amd64
+      - 386
+      - arm
+      - arm64
+    goarm:
+      - 7
+
+archives:
+  -
+    id: "seekerr"
+    builds: ['seekerr']
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
+    replacements:
+      amd64: 64bit
+      386: 32bit
+      arm: ARM
+      arm64: ARM64
+      darwin: macOS
+      linux: Linux
+      windows: Windows
+      openbsd: OpenBSD
+      netbsd: NetBSD
+      freebsd: FreeBSD
+      dragonfly: DragonFlyBSD
+    files:
+      - README.md
+      - LICENSE
+      - config/seekerr.sample.yaml
