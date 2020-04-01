@@ -296,6 +296,10 @@ notifications:
     events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 ```
 
+  Slack notification example:
+  
+  ![slack](https://user-images.githubusercontent.com/196953/78181877-fd144a00-745c-11ea-9832-0cdfbcb3be2c.jpg)
+
 ### Logger
 
 ```yaml
