@@ -24,6 +24,8 @@ package cmd
 
 import (
 	"github.com/lightglitch/seekerr/importer"
+	"github.com/lightglitch/seekerr/notification"
+	"github.com/lightglitch/seekerr/notification/gotify"
 	"github.com/lightglitch/seekerr/provider"
 	"github.com/lightglitch/seekerr/provider/imdb"
 	"github.com/lightglitch/seekerr/provider/rss"
@@ -62,7 +64,11 @@ var importCmd = &cobra.Command{
 			registry.RegisterProvider(provider.IMDB, imdb.NewProvider(logger.GetLogger(), restyClient))
 			registry.RegisterProvider(provider.TRAKT, traktprovider.NewProvider(trakt, logger.GetLogger()))
 
-			importer := importer.NewImporter(viper.Sub("importer"), logger.GetLogger(), radarr, omdb, registry)
+			dispatcher := notification.NewNotificationDispatcher(logger.GetLogger())
+
+			dispatcher.RegisterAgent(gotify.NewGotifyAgent(viper.Sub("notifications.gotify"), logger.GetLogger(), restyClient))
+
+			importer := importer.NewImporter(viper.Sub("importer"), logger.GetLogger(), radarr, omdb, registry, dispatcher)
 
 			if listName != "" && listName != "all" {
 				importer.ProcessList(listName)

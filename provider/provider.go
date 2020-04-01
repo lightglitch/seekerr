@@ -50,10 +50,17 @@ type ListConfig struct {
 }
 
 type ListItem struct {
-	Title string
-	Year  int
-	Imdb  string
-	Tmdb  int
+	Title   string
+	Year    int
+	Imdb    string
+	Tmdb    int
+	Ratings Ratings
+}
+
+type Ratings struct {
+	RottenTomatoes int
+	Imdb           float64
+	Metacritic     int
 }
 
 type ListProvider interface {

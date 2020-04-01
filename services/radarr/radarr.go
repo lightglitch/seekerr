@@ -195,7 +195,7 @@ func (c Client) getProfileId() (int, error) {
 	return 0, nil
 }
 
-func (c Client) AddMovie(movie Movie) error {
+func (c Client) AddMovie(movie *Movie) error {
 
 	movie.QualityProfileID = c.qualityId
 	movie.Monitored = c.monitored

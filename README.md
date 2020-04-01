@@ -11,13 +11,12 @@ Tool to add new movies to Radarr based on RSS, IMDB and Trakt lists.
 
 - [seekerr](#seekerr)
   - [Introduction](#introduction)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
   - [Configuration](#configuration)
     - [Sample Configuration](#sample-configuration)
     - [Services](#services)
     - [Filters](#filters)
     - [Lists](#lists)
+    - [Notifications](#notifications)
     - [Logger](#logger)
   - [Usage](#usage)
     - [General](#general)
@@ -44,14 +43,6 @@ Examples of supported lists:
     - Box Office
   - Public Lists
     - [Movist App](https://trakt.tv/users/movistapp/lists/now-playing?sort=rank,asc)
-
-## Requirements
-
-- TODO
-
-## Installation
-
-- TODO
 
 ## Configuration
 
@@ -92,6 +83,11 @@ services:
     minimumAvailability: "inCinemas"
     monitored: true
     searchForMovie: false
+
+notifications:
+  gotify:
+    webhook: "http://192.168.1.100:8070/message?token=XXXX"
+    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 
 importer:
   filter:
@@ -277,6 +273,17 @@ The base configuration for the lists is:
       url: "https://trakt.tv/users/movistapp/lists/now-playing?sort=rank,asc"
 ```
 
+### Notifications
+
+- Gotify
+
+```yaml
+notifications:
+  gotify:
+    webhook: "http://192.168.1.100:8070/message?token=XXXX"
+    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+
+```
 ### Logger
 
 ```yaml

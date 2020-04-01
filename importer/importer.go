@@ -25,6 +25,7 @@ package importer
 import (
 	"fmt"
 	"github.com/gosimple/slug"
+	"github.com/lightglitch/seekerr/notification"
 	"github.com/lightglitch/seekerr/provider"
 	"github.com/lightglitch/seekerr/services/omdb"
 	"github.com/lightglitch/seekerr/services/radarr"
@@ -36,15 +37,16 @@ import (
 
 func NewImporter(config *viper.Viper, logger *zerolog.Logger,
 	radarrClient *radarr.Client, omdbClient *omdb.Client,
-	registry *provider.Registry) *Importer {
+	registry *provider.Registry, dispatcher *notification.Dispatcher) *Importer {
 	importer := &Importer{
-		logger:    logger.With().Str("Component", "Importer").Logger(),
-		config:    config,
-		radarr:    radarrClient,
-		omdb:      omdbClient,
-		registry:  registry,
-		processed: map[string]bool{},
-		cache:     map[string]*radarr.Movie{},
+		logger:     logger.With().Str("Component", "Importer").Logger(),
+		config:     config,
+		radarr:     radarrClient,
+		omdb:       omdbClient,
+		registry:   registry,
+		dispatcher: dispatcher,
+		processed:  map[string]bool{},
+		cache:      map[string]*radarr.Movie{},
 	}
 
 	importer.initCache()
@@ -52,13 +54,14 @@ func NewImporter(config *viper.Viper, logger *zerolog.Logger,
 }
 
 type Importer struct {
-	logger    zerolog.Logger
-	config    *viper.Viper
-	radarr    *radarr.Client
-	omdb      *omdb.Client
-	registry  *provider.Registry
-	processed map[string]bool
-	cache     map[string]*radarr.Movie
+	logger     zerolog.Logger
+	config     *viper.Viper
+	radarr     *radarr.Client
+	omdb       *omdb.Client
+	registry   *provider.Registry
+	dispatcher *notification.Dispatcher
+	processed  map[string]bool
+	cache      map[string]*radarr.Movie
 }
 
 func (i Importer) initCache() {
@@ -124,6 +127,8 @@ func (i Importer) filterRulesValid(item *provider.ListItem, config *provider.Lis
 			}
 		}
 
+		item.Ratings = provider.Ratings{RottenTomatoes: 0, Imdb: 0, Metacritic: 0}
+
 		if err != nil {
 			i.logger.Error().Err(err).Msg("Fetching omdb ratings")
 			return false
@@ -144,6 +149,7 @@ func (i Importer) filterRulesValid(item *provider.ListItem, config *provider.Lis
 			for _, rating := range movieResult.Ratings {
 				if rating.Source == omdb.OMDB_IMDB_SOURCE {
 					value, _ := strconv.ParseFloat(strings.Replace(rating.Value, "/10", "", 1), 64)
+					item.Ratings.Imdb = value
 					if config.Filter.Ratings.Imdb > 0 {
 						approvedImdb = value >= config.Filter.Ratings.Imdb
 					}
@@ -154,12 +160,14 @@ func (i Importer) filterRulesValid(item *provider.ListItem, config *provider.Lis
 				}
 				if rating.Source == omdb.OMDB_METACRITIC_SOURCE {
 					value, _ := strconv.Atoi(strings.Replace(rating.Value, "/100", "", 1))
+					item.Ratings.Metacritic = value
 					if config.Filter.Ratings.Metacritic > 0 {
 						approvedMetacritic = value >= config.Filter.Ratings.Metacritic
 					}
 				}
 				if rating.Source == omdb.OMDB_ROTTEN_TOMATOES_SOURCE {
 					value, _ := strconv.Atoi(strings.Replace(rating.Value, "%", "", 1))
+					item.Ratings.RottenTomatoes = value
 					if config.Filter.Ratings.RottenTomatoes > 0 {
 						approvedRottenTomatoes = value >= config.Filter.Ratings.RottenTomatoes
 					}
@@ -183,7 +191,7 @@ func (i Importer) filterRulesValid(item *provider.ListItem, config *provider.Lis
 	return approved
 }
 
-func (i Importer) lookupMovie(item provider.ListItem) (movieResult *radarr.Movie, err error) {
+func (i Importer) lookupMovie(item *provider.ListItem) (movieResult *radarr.Movie, err error) {
 	if item.Tmdb != 0 {
 		movieResult, err = i.radarr.LookupMovieByTmdb(strconv.Itoa(item.Tmdb))
 	} else {
@@ -192,7 +200,7 @@ func (i Importer) lookupMovie(item provider.ListItem) (movieResult *radarr.Movie
 	return movieResult, err
 }
 
-func (i Importer) processProviderItem(item provider.ListItem, config provider.ListConfig) (approved bool, added bool) {
+func (i Importer) processProviderItem(listName string, item *provider.ListItem, config provider.ListConfig) (approved bool, added bool) {
 	itemSlug := fmt.Sprintf("%s-%d", slug.Make(item.Title), item.Year)
 
 	approved, added = false, false
@@ -207,14 +215,15 @@ func (i Importer) processProviderItem(item provider.ListItem, config provider.Li
 		i.processed[item.Imdb] = true
 
 		// validate filters
-		if i.filterRulesValid(&item, &config) {
+		if i.filterRulesValid(item, &config) {
 			approved = true
 
 			movieResult, err := i.lookupMovie(item)
 			if err == nil {
-				if err = i.radarr.AddMovie(*movieResult); err == nil {
+				if err = i.radarr.AddMovie(movieResult); err == nil {
 					i.logger.Info().Msgf("[ADDED] Movie '%s (%d)' added to radarr.", item.Title, item.Year)
 					added = true
+					i.dispatcher.SendEventAddMovie(listName, item, movieResult)
 				} else {
 					i.logger.Error().Err(err).Msg("Adding movie to radarr")
 				}
@@ -233,13 +242,14 @@ func (i Importer) processProviderList(listName string, config provider.ListConfi
 		Interface("filter", config.Filter).
 		Msgf("Processing list '%s'.", listName)
 
+	i.dispatcher.SendEventStartFeed(listName)
 	approvedCount = 0
 	addedCount = 0
 	if provider, ok := i.registry.GetProvider(config.Type); ok {
 
 		items, _ := provider.GetItems(config)
 		for _, item := range items {
-			approved, added := i.processProviderItem(item, config)
+			approved, added := i.processProviderItem(listName, &item, config)
 			if approved {
 				approvedCount++
 			}
@@ -249,6 +259,7 @@ func (i Importer) processProviderList(listName string, config provider.ListConfi
 		}
 	}
 	i.logger.Info().Int("Approved", approvedCount).Int("Added", addedCount).Msgf("Finish list '%s'.", listName)
+	i.dispatcher.SendEventEndFeed(listName, approvedCount, addedCount)
 	return approvedCount, addedCount
 }
 
@@ -275,5 +286,6 @@ func (i Importer) ProcessLists() {
 		addedCount += added
 	}
 
+	i.dispatcher.SendEventEndAllFeeds(approvedCount, addedCount)
 	i.logger.Info().Int("Approved", approvedCount).Int("Added", addedCount).Msg("Finish processing lists.")
 }
