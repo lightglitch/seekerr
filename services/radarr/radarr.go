@@ -111,6 +111,7 @@ type Client struct {
 type Movie struct {
 	Title               string `json:"title"`
 	TitleSlug           string `json:"titleSlug"`
+	Overview            string `json:"overview"`
 	QualityProfileID    int    `json:"qualityProfileId"`
 	RootFolderPath      string `json:"rootFolderPath"`
 	Year                int    `json:"year"`
@@ -241,7 +242,6 @@ func (c Client) LookupMovieByImdb(imdbId string) (*Movie, error) {
 		result := resp.Result().(*Movie)
 		return result, nil
 	}
-
 
 	return nil, err
 }

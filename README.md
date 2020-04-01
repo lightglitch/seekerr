@@ -89,6 +89,10 @@ notifications:
     webhook: "http://192.168.1.100:8070/message?token=XXXX"
     events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 
+  slack:
+    webhook: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+
 importer:
   filter:
     limit: 100 # limit the movies to process on each list
@@ -282,8 +286,16 @@ notifications:
   gotify:
     webhook: "http://192.168.1.100:8070/message?token=XXXX"
     events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
-
 ```
+
+- Slack
+
+```yaml
+  slack:
+    webhook: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+```
+
 ### Logger
 
 ```yaml
@@ -346,7 +358,6 @@ Global Flags:
 
 ### TODO
 
-- [ ] Notifications
 - [ ] Tests
 - [ ] Docker integration with guessIt
 
