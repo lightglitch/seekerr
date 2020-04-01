@@ -33,7 +33,7 @@ const (
 	OMDB_URL = "http://www.omdbapi.com/"
 	OMDB_IMDB_SOURCE = "Internet Movie Database"
 	OMDB_METACRITIC_SOURCE = "Metacritic"
-	OMDB_ROTTEN_TOMATOES_SOURCE = "Rotten Tomatoe"
+	OMDB_ROTTEN_TOMATOES_SOURCE = "Rotten Tomatoes"
 )
 
 type MovieResult struct {
