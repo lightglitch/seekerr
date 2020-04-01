@@ -70,7 +70,7 @@ func (a WebhookAgent) IsSubscribe(eventType EventType) bool {
 }
 
 func (a WebhookAgent) SendMessage(event Event, message interface{}) {
-	a.Logger.Info().Interface("event", event).Interface("message", message).Msg("Sending event")
+	a.Logger.Debug().Interface("event", event).Interface("message", message).Msg("Sending event")
 	if message != nil {
 		resp, err := a.
 			initRequest().
