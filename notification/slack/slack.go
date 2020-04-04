@@ -69,11 +69,11 @@ type SlackAgent struct {
 	notification.WebhookAgent
 }
 
-func (g SlackAgent) Name() string {
+func (g *SlackAgent) Name() string {
 	return "slack"
 }
 
-func (g SlackAgent) getMessage(event notification.Event) interface{} {
+func (g *SlackAgent) getMessage(event notification.Event) interface{} {
 	g.WebhookAgent.Logger.Debug().Interface("event", event).Msg("Processing message")
 	message := SlackMessage{Blocks: []SlackBlock{}}
 
@@ -137,7 +137,7 @@ func (g SlackAgent) getMessage(event notification.Event) interface{} {
 	return message
 }
 
-func (a SlackAgent) SendEvent(event notification.Event) {
+func (a *SlackAgent) SendEvent(event notification.Event) {
 	if a.IsSubscribe(event.Type) {
 		a.SendMessage(event, a.getMessage(event))
 	}

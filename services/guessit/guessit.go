@@ -104,14 +104,14 @@ type Client struct {
 	url         string
 }
 
-func (c Client) initRequest() *resty.Request {
+func (c *Client) initRequest() *resty.Request {
 	return c.restyClient.R().
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})
 }
 
-func (c Client) guessItUsingWebService(title string) (*GuessResult, error) {
+func (c *Client) guessItUsingWebService(title string) (*GuessResult, error) {
 
 	resp, err := c.initRequest().
 		SetQueryParams(map[string]string{
@@ -128,7 +128,7 @@ func (c Client) guessItUsingWebService(title string) (*GuessResult, error) {
 	return nil, err
 }
 
-func (c Client) guessItUsingCommand(title string) (*GuessResult, error) {
+func (c *Client) guessItUsingCommand(title string) (*GuessResult, error) {
 
 	cmd := exec.Command(c.path, title, "--json")
 	stdout, err := cmd.Output()
@@ -143,7 +143,7 @@ func (c Client) guessItUsingCommand(title string) (*GuessResult, error) {
 	return nil, err
 }
 
-func (c Client) GuessIt(title string) (*GuessResult, error) {
+func (c *Client) GuessIt(title string) (*GuessResult, error) {
 
 	if c.serviceType == WEBSERVICE {
 		return c.guessItUsingWebService(title)

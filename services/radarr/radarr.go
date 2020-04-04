@@ -138,11 +138,11 @@ type Errors []struct {
 	} `json:"formattedMessagePlaceholderValues"`
 }
 
-func (c Client) getEndpointUrl(endpoint string) string {
+func (c *Client) getEndpointUrl(endpoint string) string {
 	return c.url + endpoint
 }
 
-func (c Client) initRequest() *resty.Request {
+func (c *Client) initRequest() *resty.Request {
 	return c.restyClient.R().
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
@@ -150,7 +150,7 @@ func (c Client) initRequest() *resty.Request {
 		})
 }
 
-func (c Client) validateApiKey() (bool, error) {
+func (c *Client) validateApiKey() (bool, error) {
 	resp, err := c.
 		initRequest().
 		SetResult(map[string]interface{}{}).
@@ -174,7 +174,7 @@ func (c Client) validateApiKey() (bool, error) {
 	return false, nil
 }
 
-func (c Client) getProfileId() (int, error) {
+func (c *Client) getProfileId() (int, error) {
 	resp, err := c.
 		initRequest().
 		SetResult([]map[string]interface{}{}).
@@ -196,7 +196,7 @@ func (c Client) getProfileId() (int, error) {
 	return 0, nil
 }
 
-func (c Client) AddMovie(movie *Movie) error {
+func (c *Client) AddMovie(movie *Movie) error {
 
 	movie.QualityProfileID = c.qualityId
 	movie.Monitored = c.monitored
@@ -227,7 +227,7 @@ func (c Client) AddMovie(movie *Movie) error {
 	return err
 }
 
-func (c Client) LookupMovieByImdb(imdbId string) (*Movie, error) {
+func (c *Client) LookupMovieByImdb(imdbId string) (*Movie, error) {
 
 	resp, err := c.
 		initRequest().
@@ -246,7 +246,7 @@ func (c Client) LookupMovieByImdb(imdbId string) (*Movie, error) {
 	return nil, err
 }
 
-func (c Client) LookupMovieByTmdb(tmdbId string) (*Movie, error) {
+func (c *Client) LookupMovieByTmdb(tmdbId string) (*Movie, error) {
 
 	resp, err := c.
 		initRequest().
@@ -265,7 +265,7 @@ func (c Client) LookupMovieByTmdb(tmdbId string) (*Movie, error) {
 	return nil, err
 }
 
-func (c Client) GetMovies() (*[]Movie, error) {
+func (c *Client) GetMovies() (*[]Movie, error) {
 
 	resp, err := c.
 		initRequest().

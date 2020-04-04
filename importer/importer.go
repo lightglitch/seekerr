@@ -25,6 +25,7 @@ package importer
 import (
 	"fmt"
 	"github.com/gosimple/slug"
+	"github.com/lightglitch/seekerr/importer/validator"
 	"github.com/lightglitch/seekerr/notification"
 	"github.com/lightglitch/seekerr/provider"
 	"github.com/lightglitch/seekerr/services/omdb"
@@ -45,6 +46,7 @@ func NewImporter(config *viper.Viper, logger *zerolog.Logger,
 		omdb:       omdbClient,
 		registry:   registry,
 		dispatcher: dispatcher,
+		validator:  validator.NewRuleValidatior(logger),
 		processed:  map[string]bool{},
 		cache:      map[string]*radarr.Movie{},
 	}
@@ -59,12 +61,13 @@ type Importer struct {
 	radarr     *radarr.Client
 	omdb       *omdb.Client
 	registry   *provider.Registry
+	validator  *validator.RuleValidatior
 	dispatcher *notification.Dispatcher
 	processed  map[string]bool
 	cache      map[string]*radarr.Movie
 }
 
-func (i Importer) initCache() {
+func (i *Importer) initCache() {
 	movies, err := i.radarr.GetMovies()
 	if err == nil {
 		i.logger.Info().Int("Count", len(*movies)).Msg("Init radarr cache")
@@ -76,7 +79,7 @@ func (i Importer) initCache() {
 	}
 }
 
-func (i Importer) getListsConfigurations() map[string]provider.ListConfig {
+func (i *Importer) getListsConfigurations() map[string]provider.ListConfig {
 	lists := map[string]provider.ListConfig{}
 
 	i.logger.Debug().Interface("config", i.config.GetStringMap("filter")).Msgf("Debugging lists global filters.")
@@ -108,90 +111,43 @@ func (i Importer) getListsConfigurations() map[string]provider.ListConfig {
 	return lists
 }
 
-func (i Importer) filterRulesValid(item *provider.ListItem, config *provider.ListConfig) bool {
+func (i *Importer) populateExtraInfo(item *provider.ListItem) {
 
-	approved := true
+	var movieResult *omdb.MovieResult
+	if item.Imdb != "" {
+		movieResult, _ = i.omdb.GetMovieById(item.Imdb, map[string]string{})
+	} else {
+		movieResult, _ = i.omdb.GetMovieByTitle(item.Title, map[string]string{
+			"y": strconv.Itoa(item.Year),
+		})
+	}
+	if movieResult != nil {
+		item.Imdb = movieResult.ImdbID
+		item.ImdbVotes, _ = strconv.Atoi(strings.ReplaceAll(movieResult.ImdbVotes, ",", ""))
+		item.Genre = strings.Split(movieResult.Genre, ", ")
+		item.Language = strings.Split(movieResult.Language, ", ")
+		item.Runtime, _ = strconv.Atoi(strings.TrimSuffix(movieResult.Runtime, " min"))
+		item.CountRatings = len(movieResult.Ratings)
 
-	if config.Filter.Ratings.Imdb > 0 || config.Filter.Ratings.Metacritic > 0 || config.Filter.Ratings.RottenTomatoes > 0 {
-
-		var movieResult *omdb.MovieResult
-		var err error
-		if item.Imdb != "" {
-			movieResult, err = i.omdb.GetMovieById(item.Imdb, map[string]string{})
-		} else {
-			movieResult, err = i.omdb.GetMovieByTitle(item.Title, map[string]string{
-				"y": strconv.Itoa(item.Year),
-			})
-			if movieResult != nil {
-				item.Imdb = movieResult.ImdbID
+		for _, rating := range movieResult.Ratings {
+			if rating.Source == omdb.OMDB_IMDB_SOURCE {
+				value, _ := strconv.ParseFloat(strings.Replace(rating.Value, "/10", "", 1), 64)
+				item.Ratings.Imdb = value
 			}
-		}
-
-		item.Ratings = provider.Ratings{RottenTomatoes: 0, Imdb: 0, Metacritic: 0}
-
-		if err != nil {
-			i.logger.Error().Err(err).Msg("Fetching omdb ratings")
-			return false
-		}
-
-		if movieResult != nil {
-
-			i.logger.Info().Str("votes", movieResult.ImdbVotes).Interface("ratings", movieResult.Ratings).Msgf("Processing item ratings '%s (%d)'.", item.Title, item.Year)
-
-			initValue := false
-
-			if config.Filter.MatchAllRatings {
-				initValue = config.Filter.IgnoreMissingRatings >= 3-len(movieResult.Ratings)
+			if rating.Source == omdb.OMDB_METACRITIC_SOURCE {
+				value, _ := strconv.Atoi(strings.Replace(rating.Value, "/100", "", 1))
+				item.Ratings.Metacritic = value
 			}
-
-			approvedImdb, approvedMetacritic, approvedRottenTomatoes := initValue, initValue, initValue
-
-			for _, rating := range movieResult.Ratings {
-				if rating.Source == omdb.OMDB_IMDB_SOURCE {
-					value, _ := strconv.ParseFloat(strings.Replace(rating.Value, "/10", "", 1), 64)
-					item.Ratings.Imdb = value
-					if config.Filter.Ratings.Imdb > 0 {
-						approvedImdb = value >= config.Filter.Ratings.Imdb
-					}
-					if config.Filter.ImdbVotes > 0 {
-						votes, _ := strconv.Atoi(strings.ReplaceAll(movieResult.ImdbVotes, ",", ""))
-						approvedImdb = approvedImdb && votes >= config.Filter.ImdbVotes
-					}
-				}
-				if rating.Source == omdb.OMDB_METACRITIC_SOURCE {
-					value, _ := strconv.Atoi(strings.Replace(rating.Value, "/100", "", 1))
-					item.Ratings.Metacritic = value
-					if config.Filter.Ratings.Metacritic > 0 {
-						approvedMetacritic = value >= config.Filter.Ratings.Metacritic
-					}
-				}
-				if rating.Source == omdb.OMDB_ROTTEN_TOMATOES_SOURCE {
-					value, _ := strconv.Atoi(strings.Replace(rating.Value, "%", "", 1))
-					item.Ratings.RottenTomatoes = value
-					if config.Filter.Ratings.RottenTomatoes > 0 {
-						approvedRottenTomatoes = value >= config.Filter.Ratings.RottenTomatoes
-					}
-				}
+			if rating.Source == omdb.OMDB_ROTTEN_TOMATOES_SOURCE {
+				value, _ := strconv.Atoi(strings.Replace(rating.Value, "%", "", 1))
+				item.Ratings.RottenTomatoes = value
 			}
-
-			if config.Filter.MatchAllRatings {
-				approved = approved && (approvedImdb && approvedMetacritic && approvedRottenTomatoes)
-			} else {
-				approved = approved && (approvedImdb || approvedMetacritic || approvedRottenTomatoes)
-			}
-			i.logger.Info().Bool("approved", approved).Msgf("Result item ratings '%s (%d)'.", item.Title, item.Year)
-		} else {
-			i.logger.Error().Err(err).Msg("Fetching omdb ratings")
-			return false
 		}
 	}
 
-	//TODO process more filters
-
-	return approved
 }
 
-func (i Importer) lookupMovie(item *provider.ListItem) (movieResult *radarr.Movie, err error) {
+func (i *Importer) lookupMovie(item *provider.ListItem) (movieResult *radarr.Movie, err error) {
 	if item.Tmdb != 0 {
 		movieResult, err = i.radarr.LookupMovieByTmdb(strconv.Itoa(item.Tmdb))
 	} else {
@@ -200,7 +156,7 @@ func (i Importer) lookupMovie(item *provider.ListItem) (movieResult *radarr.Movi
 	return movieResult, err
 }
 
-func (i Importer) processProviderItem(listName string, item *provider.ListItem, config provider.ListConfig) (approved bool, added bool) {
+func (i *Importer) processProviderItem(listName string, item *provider.ListItem) (approved bool, added bool) {
 	itemSlug := fmt.Sprintf("%s-%d", slug.Make(item.Title), item.Year)
 
 	approved, added = false, false
@@ -214,9 +170,10 @@ func (i Importer) processProviderItem(listName string, item *provider.ListItem, 
 			Msgf("Processing list item '%s (%d)'.", item.Title, item.Year)
 		i.processed[item.Imdb] = true
 
+		i.populateExtraInfo(item)
+
 		// validate filters
-		if i.filterRulesValid(item, &config) {
-			approved = true
+		if approved = i.validator.IsItemApproved(item); approved {
 
 			movieResult, err := i.lookupMovie(item)
 			if err == nil {
@@ -235,7 +192,7 @@ func (i Importer) processProviderItem(listName string, item *provider.ListItem, 
 	return approved, added
 }
 
-func (i Importer) processProviderList(listName string, config provider.ListConfig) (approvedCount int, addedCount int) {
+func (i *Importer) processProviderList(listName string, config provider.ListConfig) (approvedCount int, addedCount int) {
 
 	i.logger.Info().
 		Interface("Type", config.Type).
@@ -247,9 +204,11 @@ func (i Importer) processProviderList(listName string, config provider.ListConfi
 	addedCount = 0
 	if provider, ok := i.registry.GetProvider(config.Type); ok {
 
+		i.validator.InitRules(config)
+
 		items, _ := provider.GetItems(config)
 		for _, item := range items {
-			approved, added := i.processProviderItem(listName, &item, config)
+			approved, added := i.processProviderItem(listName, &item)
 			if approved {
 				approvedCount++
 			}
@@ -263,7 +222,7 @@ func (i Importer) processProviderList(listName string, config provider.ListConfi
 	return approvedCount, addedCount
 }
 
-func (i Importer) ProcessList(listName string) {
+func (i *Importer) ProcessList(listName string) {
 
 	configurations := i.getListsConfigurations()
 
@@ -274,7 +233,7 @@ func (i Importer) ProcessList(listName string) {
 	}
 }
 
-func (i Importer) ProcessLists() {
+func (i *Importer) ProcessLists() {
 
 	configurations := i.getListsConfigurations()
 

@@ -48,14 +48,14 @@ type WebhookAgent struct {
 	events      []EventType
 }
 
-func (a WebhookAgent) initRequest() *resty.Request {
+func (a *WebhookAgent) initRequest() *resty.Request {
 	return a.restyClient.R().
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})
 }
 
-func (a WebhookAgent) IsSubscribe(eventType EventType) bool {
+func (a *WebhookAgent) IsSubscribe(eventType EventType) bool {
 
 	if len(a.events) == 0 {
 		return true
@@ -69,7 +69,7 @@ func (a WebhookAgent) IsSubscribe(eventType EventType) bool {
 	return false
 }
 
-func (a WebhookAgent) SendMessage(event Event, message interface{}) {
+func (a *WebhookAgent) SendMessage(event Event, message interface{}) {
 	a.Logger.Debug().Interface("event", event).Interface("message", message).Msg("Sending event")
 	if message != nil {
 		resp, err := a.

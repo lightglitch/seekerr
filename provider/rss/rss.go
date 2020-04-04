@@ -47,7 +47,7 @@ type Provider struct {
 	guessit     *guessit.Client
 }
 
-func (p Provider) GetItems(config provider.ListConfig) ([]provider.ListItem, error) {
+func (p *Provider) GetItems(config provider.ListConfig) ([]provider.ListItem, error) {
 
 	limit := config.Filter.Limit
 	if limit == 0 {

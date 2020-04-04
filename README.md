@@ -96,13 +96,11 @@ notifications:
 importer:
   filter:
     limit: 100 # limit the movies to process on each list
-    matchAllRatings: true # must match all existing ratings
-    ignoreMissingRatings: 1 # ignore if it's missing one rating provider
-    imdbVotes: 1000 # must have at least this votes
-    ratings: # minimum ratings for the film to have
-      rottenTomatoes: 75
-      imdb: 7.0
-      metacritic: 70
+    exclude:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
 
   lists:
     rarbg:
@@ -213,24 +211,16 @@ The filters can be configured globally and per list, the list configuration take
 ```yaml
   filter:
     limit: 100 # limit the movies to process on each list
-    matchAllRatings: true # must match all existing ratings
-    ignoreMissingRatings: 1 # ignore if it's missing one rating provider
-    imdbVotes: 1000 # must have at least this votes
-    ratings: # minimum ratings for the film to have
-      rottenTomatoes: 75
-      imdb: 7.0
-      metacritic: 70
+    exclude:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
 ```
 
   `limit` - Process only this number movies in the list
 
-  `matchAllRatings` - If true all ratings must be equal or above the defined.
-
-  `ignoreMissingRatings` - The number of ratings that can be ignored if they are missing from the movie. For example a movie that doesn't have metacritic can still be approved if the other ratings are valid.  
-
-  `imdbVotes` - Only considered the imdb rating if they have a minimum of votes.
-
-  `ratings` - The definition of the minimum ratings of the several providers so that the movie can be approved.
+  `exclude` - An list of expressions that exclude the movie from being added
 
 ### Lists
 

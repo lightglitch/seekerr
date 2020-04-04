@@ -54,21 +54,21 @@ type Dispatcher struct {
 	agents map[string]Agent
 }
 
-func (d Dispatcher) RegisterAgent(agent Agent) {
+func (d *Dispatcher) RegisterAgent(agent Agent) {
 	if agent != nil {
 		d.logger.Info().Str("agent", agent.Name()).Msg("Register agent")
 		d.agents[agent.Name()] = agent
 	}
 }
 
-func (d Dispatcher) SendEvent(event Event) {
+func (d *Dispatcher) SendEvent(event Event) {
 	d.logger.Info().Interface("event", event).Int("agents", len(d.agents)).Msg("Broadcast event")
 	for _, agent := range d.agents {
 		agent.SendEvent(event)
 	}
 }
 
-func (d Dispatcher) SendEventAddMovie(name string, item *provider.ListItem, movie *radarr.Movie) {
+func (d *Dispatcher) SendEventAddMovie(name string, item *provider.ListItem, movie *radarr.Movie) {
 	d.SendEvent(Event{
 		Type: ADDED_MOVIE,
 		Data: map[string]interface{}{
@@ -79,7 +79,7 @@ func (d Dispatcher) SendEventAddMovie(name string, item *provider.ListItem, movi
 	})
 }
 
-func (d Dispatcher) SendEventEndFeed(name string, approved int, added int) {
+func (d *Dispatcher) SendEventEndFeed(name string, approved int, added int) {
 	d.SendEvent(Event{
 		Type: FINISH_FEED,
 		Data: map[string]interface{}{
@@ -90,7 +90,7 @@ func (d Dispatcher) SendEventEndFeed(name string, approved int, added int) {
 	})
 }
 
-func (d Dispatcher) SendEventEndAllFeeds(approved int, added int) {
+func (d *Dispatcher) SendEventEndAllFeeds(approved int, added int) {
 	d.SendEvent(Event{
 		Type: FINISH_ALL_FEEDS,
 		Data: map[string]interface{}{
@@ -100,7 +100,7 @@ func (d Dispatcher) SendEventEndAllFeeds(approved int, added int) {
 	})
 }
 
-func (d Dispatcher) SendEventStartFeed(name string) {
+func (d *Dispatcher) SendEventStartFeed(name string) {
 	d.SendEvent(Event{
 		Type: START_FEED,
 		Data: map[string]interface{}{

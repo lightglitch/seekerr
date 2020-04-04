@@ -32,14 +32,7 @@ const (
 
 type ListFilter struct {
 	Limit                int
-	MatchAllRatings      bool
-	IgnoreMissingRatings int
-	ImdbVotes            int
-	Ratings              struct {
-		RottenTomatoes int
-		Imdb           float64
-		Metacritic     int
-	}
+	Exclude              []string
 }
 
 type ListConfig struct {
@@ -50,11 +43,16 @@ type ListConfig struct {
 }
 
 type ListItem struct {
-	Title   string
-	Year    int
-	Imdb    string
-	Tmdb    int
-	Ratings Ratings
+	Title        string
+	Year         int
+	Imdb         string
+	Tmdb         int
+	ImdbVotes    int
+	Genre        []string
+	Language     []string
+	Runtime      int
+	Ratings      Ratings
+	CountRatings int
 }
 
 type Ratings struct {
@@ -77,11 +75,11 @@ type Registry struct {
 	providers map[ListType]ListProvider
 }
 
-func (r Registry) RegisterProvider(listType ListType, provider ListProvider) {
+func (r *Registry) RegisterProvider(listType ListType, provider ListProvider) {
 	r.providers[listType] = provider
 }
 
-func (r Registry) GetProvider(listType ListType) (provider ListProvider, ok bool) {
+func (r *Registry) GetProvider(listType ListType) (provider ListProvider, ok bool) {
 	provider, ok = r.providers[listType]
 	return provider, ok
 }

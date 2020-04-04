@@ -45,13 +45,11 @@ notifications:
 importer:
   filter:
     limit: 100 # limit the movies to process on each list
-    matchAllRatings: true # must match all existing ratings
-    ignoreMissingRatings: 1 # ignore if it's missing one rating provider
-    imdbVotes: 1000 # must have at least this votes
-    ratings: # minimum ratings for the film to have
-      rottenTomatoes: 75
-      imdb: 7.0
-      metacritic: 70
+    exclude:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
 
   lists:
     # name_of_list:

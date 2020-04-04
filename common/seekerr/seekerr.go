@@ -43,7 +43,7 @@ type Version struct {
 	Suffix string
 }
 
-func (v Version) String() string {
+func (v *Version) String() string {
 	return fmt.Sprintf("%d.%d.%d%s", v.Major, v.Minor, v.Patch, v.Suffix)
 }
 

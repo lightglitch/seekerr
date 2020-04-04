@@ -53,11 +53,11 @@ type GotifyAgent struct {
 	notification.WebhookAgent
 }
 
-func (g GotifyAgent) Name() string {
+func (g *GotifyAgent) Name() string {
 	return "gotify"
 }
 
-func (g GotifyAgent) getMessage(event notification.Event) interface{} {
+func (g *GotifyAgent) getMessage(event notification.Event) interface{} {
 	g.WebhookAgent.Logger.Debug().Interface("event", event).Msg("Processing message")
 	message := map[string]string{}
 
@@ -85,7 +85,7 @@ func (g GotifyAgent) getMessage(event notification.Event) interface{} {
 	return message
 }
 
-func (a GotifyAgent) SendEvent(event notification.Event) {
+func (a *GotifyAgent) SendEvent(event notification.Event) {
 	if a.IsSubscribe(event.Type) {
 		a.SendMessage(event, a.getMessage(event))
 	}

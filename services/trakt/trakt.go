@@ -80,7 +80,7 @@ type Movie struct {
 	Year  int    `json:"year"`
 }
 
-func (c Client) initRequest() *resty.Request {
+func (c *Client) initRequest() *resty.Request {
 	return c.restyClient.R().
 		SetHeaders(map[string]string{
 			"Content-Type":      "application/json",
@@ -89,7 +89,7 @@ func (c Client) initRequest() *resty.Request {
 		})
 }
 
-func (c Client) fetchPagedList(url string, queryParams map[string]string) ([]MovieItem, error) {
+func (c *Client) fetchPagedList(url string, queryParams map[string]string) ([]MovieItem, error) {
 
 	c.logger.Debug().Interface("params", queryParams).Msgf("Fetching trakt list: %s", url)
 
@@ -108,7 +108,7 @@ func (c Client) fetchPagedList(url string, queryParams map[string]string) ([]Mov
 	return result, err
 }
 
-func (c Client) FetchList(url string, limit int) ([]MovieItem, error) {
+func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 	result := []MovieItem{}
 
 	page := 1

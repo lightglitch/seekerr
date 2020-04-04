@@ -30,9 +30,9 @@ import (
 )
 
 const (
-	OMDB_URL = "http://www.omdbapi.com/"
-	OMDB_IMDB_SOURCE = "Internet Movie Database"
-	OMDB_METACRITIC_SOURCE = "Metacritic"
+	OMDB_URL                    = "http://www.omdbapi.com/"
+	OMDB_IMDB_SOURCE            = "Internet Movie Database"
+	OMDB_METACRITIC_SOURCE      = "Metacritic"
 	OMDB_ROTTEN_TOMATOES_SOURCE = "Rotten Tomatoes"
 )
 
@@ -43,6 +43,7 @@ type MovieResult struct {
 	Released   string
 	Runtime    string
 	Genre      string
+	Language   string
 	Director   string
 	Writer     string
 	Actors     string
@@ -107,14 +108,14 @@ type Client struct {
 	apiKey      string
 }
 
-func (c Client) initRequest() *resty.Request {
+func (c *Client) initRequest() *resty.Request {
 	return c.restyClient.R().
 		SetHeaders(map[string]string{
 			"Content-Type": "application/json",
 		})
 }
 
-func (c Client) GetMovieById(imdbId string, params map[string]string) (*MovieResult, error) {
+func (c *Client) GetMovieById(imdbId string, params map[string]string) (*MovieResult, error) {
 
 	queryParams := map[string]string{
 		"i":      imdbId,
@@ -144,7 +145,7 @@ func (c Client) GetMovieById(imdbId string, params map[string]string) (*MovieRes
 	return nil, err
 }
 
-func (c Client) GetMovieByTitle(title string, params map[string]string) (*MovieResult, error) {
+func (c *Client) GetMovieByTitle(title string, params map[string]string) (*MovieResult, error) {
 
 	queryParams := map[string]string{
 		"t":      title,
@@ -174,7 +175,7 @@ func (c Client) GetMovieByTitle(title string, params map[string]string) (*MovieR
 	return nil, err
 }
 
-func (c Client) SearchMovieByTitle(title string, params map[string]string) (*SearchResponse, error) {
+func (c *Client) SearchMovieByTitle(title string, params map[string]string) (*SearchResponse, error) {
 
 	queryParams := map[string]string{
 		"s":      title,
