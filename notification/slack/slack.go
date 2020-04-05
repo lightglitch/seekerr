@@ -38,10 +38,10 @@ type SlackMessage struct {
 }
 
 type SlackBlock struct {
-	Type     string    `json:"type"`
+	Type     string     `json:"type"`
 	Text     *SlackText `json:"text,omitempty"`
-	ImageURL string    `json:"image_url,omitempty"`
-	AltText  string    `json:"alt_text,omitempty"`
+	ImageURL string     `json:"image_url,omitempty"`
+	AltText  string     `json:"alt_text,omitempty"`
 }
 
 type SlackText struct {
@@ -117,15 +117,20 @@ func (g *SlackAgent) getMessage(event notification.Event) interface{} {
 			Type: "section",
 			Text: &SlackText{
 				Type: "mrkdwn",
-				Text: fmt.Sprintf("<%s|%s (%d)>\n%s\n\n IMDB: *%.1f*/10 | METACRITIC: *%d*/100 | ROTTEN TOMATOES: *%d%%*",
-					url, movie.Title, movie.Year, movie.Overview, item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes),
+				Text: fmt.Sprintf("<%s|%s (%d)>\n%s", url, movie.Title, movie.Year, movie.Overview),
+			},
+		}, SlackBlock{
+			Type: "section",
+			Text: &SlackText{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("IMDB: *%.1f*/10 | METACRITIC: *%d*/100 | ROTTEN TOMATOES: *%d%%*", item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes),
 			},
 		})
 		if len(movie.Images) > 0 {
 			message.Blocks = append(message.Blocks, SlackBlock{
-				Type: "image",
+				Type:     "image",
 				ImageURL: movie.Images[0].URL,
-				AltText: movie.Title,
+				AltText:  movie.Title,
 			})
 		}
 
