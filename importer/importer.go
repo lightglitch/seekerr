@@ -187,6 +187,11 @@ func (i *Importer) processProviderItem(listName string, item *provider.ListItem)
 			} else {
 				i.logger.Error().Err(err).Msg("Looking movie in radarr")
 			}
+		} else if i.config.GetBool("revision") {
+			if revision := i.validator.IsItemForRevision(item); revision {
+				movieResult, _ := i.lookupMovie(item)
+				i.dispatcher.SendEventRevisionMovie(listName, item, movieResult)
+			}
 		}
 	}
 	return approved, added

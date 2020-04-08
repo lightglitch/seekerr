@@ -35,6 +35,7 @@ const (
 	FINISH_FEED      = "FINISH_FEED"
 	FINISH_ALL_FEEDS = "FINISH_ALL_FEEDS"
 	ADDED_MOVIE      = "ADDED_MOVIE"
+	REVISION_MOVIE   = "REVISION_MOVIE"
 )
 
 type Event struct {
@@ -71,6 +72,17 @@ func (d *Dispatcher) SendEvent(event Event) {
 func (d *Dispatcher) SendEventAddMovie(name string, item *provider.ListItem, movie *radarr.Movie) {
 	d.SendEvent(Event{
 		Type: ADDED_MOVIE,
+		Data: map[string]interface{}{
+			"name":  name,
+			"item":  item,
+			"movie": movie,
+		},
+	})
+}
+
+func (d *Dispatcher) SendEventRevisionMovie(name string, item *provider.ListItem, movie *radarr.Movie) {
+	d.SendEvent(Event{
+		Type: REVISION_MOVIE,
 		Data: map[string]interface{}{
 			"name":  name,
 			"item":  item,

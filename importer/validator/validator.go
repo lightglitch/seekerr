@@ -43,12 +43,14 @@ func NewRuleValidatior(logger *zerolog.Logger) *RuleValidatior {
 }
 
 type RuleValidatior struct {
-	logger zerolog.Logger
-	rules  []*vm.Program
+	logger        zerolog.Logger
+	rules         []*vm.Program
+	revisionRules []*vm.Program
 }
 
 func (v *RuleValidatior) InitRules(config provider.ListConfig) error {
 	v.rules = []*vm.Program{}
+	v.revisionRules = []*vm.Program{}
 	env := &RuleEnv{}
 
 	v.logger.Debug().Interface("rules", config.Filter.Exclude).Msg("Prepare list rules")
@@ -64,7 +66,47 @@ func (v *RuleValidatior) InitRules(config provider.ListConfig) error {
 
 	v.logger.Debug().Int("rules", len(v.rules)).Msg("Initialized list rules")
 
+	v.logger.Debug().Interface("revision rules", config.Filter.Revision).Msg("Prepare list rules")
+	for _, rule := range config.Filter.Revision {
+		compiledRule, err := expr.Compile(rule, expr.Env(env), expr.AsBool())
+		if err != nil {
+			v.logger.Error().Err(err).Msgf("Invalid revision rule: %q", rule)
+			return err
+		}
+
+		v.revisionRules = append(v.revisionRules, compiledRule)
+	}
+
+	v.logger.Debug().Int("revision rules", len(v.revisionRules)).Msg("Initialized list rules")
+
 	return nil
+}
+
+func (v *RuleValidatior) IsItemForRevision(item *provider.ListItem) bool {
+
+	env := RuleEnv{
+		ListItem: *item,
+		Now:      func() time.Time { return time.Now().UTC() },
+	}
+
+	v.logger.Debug().Int("rules", len(v.revisionRules)).Msg("Validating item rules")
+
+	for _, rule := range v.revisionRules {
+		result, err := expr.Run(rule, env)
+		if err != nil {
+			v.logger.Error().Err(err).Interface("item", item).Msg("Failed validation rule for item")
+			return false
+		}
+
+		expResult, ok := result.(bool)
+		if !ok || expResult {
+			return false
+		}
+	}
+
+	v.logger.Debug().Msg("Item approved for revision")
+
+	return true
 }
 
 func (v *RuleValidatior) IsItemApproved(item *provider.ListItem) bool {

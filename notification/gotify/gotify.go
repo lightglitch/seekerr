@@ -77,6 +77,12 @@ func (g *GotifyAgent) getMessage(event notification.Event) interface{} {
 		item := event.Data["item"].(*provider.ListItem)
 		message["message"] = fmt.Sprintf("Added new movie '%s (%d)', ratings: imdb %.1f/10, metacritic %d/100, rotten tomatoes %d%%",
 			movie.Title, movie.Year, item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes)
+	case notification.REVISION_MOVIE:
+		message["title"] = fmt.Sprintf("Seekerr: %s", event.Data["name"])
+		movie := event.Data["movie"].(*radarr.Movie)
+		item := event.Data["item"].(*provider.ListItem)
+		message["message"] = fmt.Sprintf("Movie '%s (%d)' for revision, ratings: imdb %.1f/10, metacritic %d/100, rotten tomatoes %d%%",
+			movie.Title, movie.Year, item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes)
 	default:
 		g.WebhookAgent.Logger.Error().Interface("event", event).Msg("Invalid event type")
 		return nil

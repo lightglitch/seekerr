@@ -31,8 +31,9 @@ const (
 )
 
 type ListFilter struct {
-	Limit                int
-	Exclude              []string
+	Limit    int
+	Exclude  []string
+	Revision []string
 }
 
 type ListConfig struct {

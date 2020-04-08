@@ -70,7 +70,11 @@ var importCmd = &cobra.Command{
 			dispatcher.RegisterAgent(gotify.NewGotifyAgent(viper.Sub("notifications.gotify"), logger.GetLogger(), restyClient))
 			dispatcher.RegisterAgent(slack.NewSlackAgent(viper.Sub("notifications.slack"), logger.GetLogger(), restyClient))
 
-			importer := importer.NewImporter(viper.Sub("importer"), logger.GetLogger(), radarr, omdb, registry, dispatcher)
+			config := viper.Sub("importer")
+			if viper.IsSet("revision") {
+				config.Set("revision", viper.Get("revision"))
+			}
+			importer := importer.NewImporter(config, logger.GetLogger(), radarr, omdb, registry, dispatcher)
 
 			if listName != "" && listName != "all" {
 				importer.ProcessList(listName)
@@ -94,4 +98,6 @@ func init() {
 	// is called directly, e.g.:
 	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	importCmd.Flags().StringVarP(&listName, "list", "l", "all", "The name of the list to import")
+	importCmd.Flags().BoolP("revision", "r", false, "Use revision rules")
+	viper.BindPFlag("revision", importCmd.Flags().Lookup("revision"))
 }

@@ -133,6 +133,37 @@ func (g *SlackAgent) getMessage(event notification.Event) interface{} {
 				AltText:  movie.Title,
 			})
 		}
+	case notification.REVISION_MOVIE:
+		movie := event.Data["movie"].(*radarr.Movie)
+		item := event.Data["item"].(*provider.ListItem)
+		url := fmt.Sprintf("https://www.themoviedb.org/movie/%d-%s", movie.TmdbID, movie.TitleSlug)
+
+		message.Blocks = append(message.Blocks, SlackBlock{
+			Type: "section",
+			Text: &SlackText{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("Movie for revision found in feed *%s*.", event.Data["name"]),
+			},
+		}, SlackBlock{
+			Type: "section",
+			Text: &SlackText{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("<%s|%s (%d)>\n%s", url, movie.Title, movie.Year, movie.Overview),
+			},
+		}, SlackBlock{
+			Type: "section",
+			Text: &SlackText{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("IMDB: *%.1f*/10 | METACRITIC: *%d*/100 | ROTTEN TOMATOES: *%d%%*", item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes),
+			},
+		})
+		if len(movie.Images) > 0 {
+			message.Blocks = append(message.Blocks, SlackBlock{
+				Type:     "image",
+				ImageURL: movie.Images[0].URL,
+				AltText:  movie.Title,
+			})
+		}
 
 	default:
 		g.WebhookAgent.Logger.Error().Interface("event", event).Msg("Invalid event type")
