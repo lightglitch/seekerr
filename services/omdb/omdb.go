@@ -36,7 +36,7 @@ const (
 	OMDB_ROTTEN_TOMATOES_SOURCE = "Rotten Tomatoes"
 )
 
-type MovieResult struct {
+type Result struct {
 	Title      string
 	Year       string
 	Rated      string
@@ -115,7 +115,7 @@ func (c *Client) initRequest() *resty.Request {
 		})
 }
 
-func (c *Client) GetMovieById(imdbId string, params map[string]string) (*MovieResult, error) {
+func (c *Client) GetMovieById(imdbId string, params map[string]string) (*Result, error) {
 
 	queryParams := map[string]string{
 		"i":      imdbId,
@@ -129,11 +129,11 @@ func (c *Client) GetMovieById(imdbId string, params map[string]string) (*MovieRe
 
 	resp, err := c.initRequest().
 		SetQueryParams(queryParams).
-		SetResult(&MovieResult{}).
+		SetResult(&Result{}).
 		Get(c.url)
 
 	if resp != nil && resp.IsSuccess() {
-		title := resp.Result().(*MovieResult)
+		title := resp.Result().(*Result)
 		if title.Response == "False" {
 			c.logger.Error().Interface("result", title).Msg("Fetching movie info")
 			return nil, errors.New(title.Error)
@@ -145,7 +145,7 @@ func (c *Client) GetMovieById(imdbId string, params map[string]string) (*MovieRe
 	return nil, err
 }
 
-func (c *Client) GetMovieByTitle(title string, params map[string]string) (*MovieResult, error) {
+func (c *Client) GetMovieByTitle(title string, params map[string]string) (*Result, error) {
 
 	queryParams := map[string]string{
 		"t":      title,
@@ -159,11 +159,11 @@ func (c *Client) GetMovieByTitle(title string, params map[string]string) (*Movie
 
 	resp, err := c.initRequest().
 		SetQueryParams(queryParams).
-		SetResult(&MovieResult{}).
+		SetResult(&Result{}).
 		Get(c.url)
 
 	if resp != nil && resp.IsSuccess() {
-		title := resp.Result().(*MovieResult)
+		title := resp.Result().(*Result)
 		if title.Response == "False" {
 			c.logger.Error().Err(errors.New(title.Error)).Msg("Fetching movie info")
 			return nil, errors.New(title.Error)
@@ -180,6 +180,92 @@ func (c *Client) SearchMovieByTitle(title string, params map[string]string) (*Se
 	queryParams := map[string]string{
 		"s":      title,
 		"type":   "movie",
+		"apikey": c.apiKey,
+	}
+
+	for k, v := range params {
+		queryParams[k] = v
+	}
+
+	resp, err := c.initRequest().
+		SetQueryParams(queryParams).
+		SetResult(SearchResponse{}).
+		Get(c.url)
+
+	if resp != nil && resp.IsSuccess() {
+		search := resp.Result().(*SearchResponse)
+		return search, nil
+	}
+
+	return nil, err
+}
+
+
+func (c *Client) GetSeriesById(imdbId string, params map[string]string) (*Result, error) {
+
+	queryParams := map[string]string{
+		"i":      imdbId,
+		"type":   "series",
+		"apikey": c.apiKey,
+	}
+
+	for k, v := range params {
+		queryParams[k] = v
+	}
+
+	resp, err := c.initRequest().
+		SetQueryParams(queryParams).
+		SetResult(&Result{}).
+		Get(c.url)
+
+	if resp != nil && resp.IsSuccess() {
+		title := resp.Result().(*Result)
+		if title.Response == "False" {
+			c.logger.Error().Interface("result", title).Msg("Fetching movie info")
+			return nil, errors.New(title.Error)
+		}
+		return title, nil
+	}
+
+	c.logger.Error().Err(err).Msg("Fetching movie info")
+	return nil, err
+}
+
+func (c *Client) GetSeriesByTitle(title string, params map[string]string) (*Result, error) {
+
+	queryParams := map[string]string{
+		"t":      title,
+		"type":   "series",
+		"apikey": c.apiKey,
+	}
+
+	for k, v := range params {
+		queryParams[k] = v
+	}
+
+	resp, err := c.initRequest().
+		SetQueryParams(queryParams).
+		SetResult(&Result{}).
+		Get(c.url)
+
+	if resp != nil && resp.IsSuccess() {
+		title := resp.Result().(*Result)
+		if title.Response == "False" {
+			c.logger.Error().Err(errors.New(title.Error)).Msg("Fetching movie info")
+			return nil, errors.New(title.Error)
+		}
+		return title, nil
+	}
+
+	c.logger.Error().Err(err).Msg("Fetching movie info")
+	return nil, err
+}
+
+func (c *Client) SearchSeriesByTitle(title string, params map[string]string) (*SearchResponse, error) {
+
+	queryParams := map[string]string{
+		"s":      title,
+		"type":   "series",
 		"apikey": c.apiKey,
 	}
 

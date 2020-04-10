@@ -113,7 +113,7 @@ func (i *Importer) getListsConfigurations() map[string]provider.ListConfig {
 
 func (i *Importer) populateExtraInfo(item *provider.ListItem) {
 
-	var movieResult *omdb.MovieResult
+	var movieResult *omdb.Result
 	if item.Imdb != "" {
 		movieResult, _ = i.omdb.GetMovieById(item.Imdb, map[string]string{})
 	} else {
