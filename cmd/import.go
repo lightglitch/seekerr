@@ -98,6 +98,6 @@ func init() {
 	// is called directly, e.g.:
 	// importCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	importCmd.Flags().StringVarP(&listName, "list", "l", "all", "The name of the list to import")
-	importCmd.Flags().BoolP("revision", "r", false, "Use revision rules")
+	importCmd.Flags().BoolP("revision", "r", false, "Notify me about movies that are not approved but match revision rules")
 	viper.BindPFlag("revision", importCmd.Flags().Lookup("revision"))
 }

@@ -209,14 +209,22 @@ importer:
 The filters can be configured globally and per list, the list configuration takes precedence over the global filter configuration.
 
 ```yaml
+  revision: false
   filter:
     limit: 100 # limit the movies to process on each list
     exclude:
-      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
       - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
       - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
       - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
+    revision:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 6.5'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 60'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 65'
 ```
+
+  `revision` - Notify me about movies that are not approved but match revision rules
 
   `limit` - Process only this number movies in the list
 
@@ -343,6 +351,7 @@ Usage:
 Flags:
   -h, --help          help for import
   -l, --list string   The name of the list to import (default "all")
+  -r, --revision      Notify me about movies that are not approved but match revision rules
 
 Global Flags:
       --config string   config file (default is config/seekerr.yaml)

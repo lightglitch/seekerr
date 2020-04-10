@@ -43,13 +43,19 @@ notifications:
     events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 
 importer:
+  revision: false
   filter:
     limit: 100 # limit the movies to process on each list
     exclude:
-      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
       - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
       - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
       - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
+    revision:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 6.5'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 60'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 65'
 
   lists:
     # name_of_list:
