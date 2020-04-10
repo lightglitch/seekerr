@@ -87,20 +87,26 @@ services:
 notifications:
   gotify:
     webhook: "http://192.168.1.100:8070/message?token=XXXX"
-    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+    events: ["ADDED_MOVIE","REVISION_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 
   slack:
     webhook: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
-    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+    events: ["ADDED_MOVIE","REVISION_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 
 importer:
+  revision: false
   filter:
     limit: 100 # limit the movies to process on each list
     exclude:
-      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000'
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
       - 'Ratings.Imdb != 0 && Ratings.Imdb < 7'
       - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 70'
       - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 75'
+    revision:
+      - 'CountRatings < 2 || Runtime < 20 || ImdbVotes < 1000 || Year > Now().Year()'
+      - 'Ratings.Imdb != 0 && Ratings.Imdb < 6.5'
+      - 'Ratings.Metacritic != 0 && Ratings.Metacritic < 60'
+      - 'Ratings.RottenTomatoes != 0 && Ratings.RottenTomatoes < 65'
 
   lists:
     rarbg:
@@ -283,7 +289,7 @@ The base configuration for the lists is:
 notifications:
   gotify:
     webhook: "http://192.168.1.100:8070/message?token=XXXX"
-    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+    events: ["ADDED_MOVIE","REVISION_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 ```
 
 - Slack
@@ -291,7 +297,7 @@ notifications:
 ```yaml
   slack:
     webhook: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
-    events: ["ADDED_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
+    events: ["ADDED_MOVIE","REVISION_MOVIE","FINISH_ALL_FEEDS"] # START_FEED, FINISH_FEED, FINISH_ALL_FEEDS, ADDED_MOVIE, leave empty for all
 ```
 
   Slack notification example:
