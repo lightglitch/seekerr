@@ -59,7 +59,7 @@ func (g *GotifyAgent) Name() string {
 
 func (g *GotifyAgent) getMessage(event notification.Event) interface{} {
 	g.WebhookAgent.Logger.Debug().Interface("event", event).Msg("Processing message")
-	message := map[string]interface{}
+	message := map[string]interface{}{}
 
 	switch event.Type {
 	case notification.START_FEED:
