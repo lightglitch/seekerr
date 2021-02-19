@@ -27,6 +27,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -108,6 +109,25 @@ func (c *Client) fetchPagedList(url string, queryParams map[string]string) ([]Mo
 	return result, err
 }
 
+func (c *Client) fetchMoviePagedList(url string, queryParams map[string]string) ([]Movie, error) {
+
+	c.logger.Debug().Interface("params", queryParams).Msgf("Fetching trakt list: %s", url)
+
+	result := []Movie{}
+
+	resp, err := c.
+		initRequest().
+		SetQueryParams(queryParams).
+		SetResult([]Movie{}).
+		Get(url)
+
+	if resp != nil && resp.IsSuccess() {
+		result = *resp.Result().(*[]Movie)
+	}
+
+	return result, err
+}
+
 func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 	result := []MovieItem{}
 
@@ -125,15 +145,35 @@ func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 			"limit": strconv.Itoa(pageLimit),
 		}
 
-		movies, err := c.fetchPagedList(url, params)
+		if strings.HasSuffix(url, "/movies/popular") {
+			movies, err := c.fetchMoviePagedList(url, params)
 
-		if err != nil {
-			c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
-		}
+			if err != nil {
+				c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
+			}
 
-		currentCount = len(movies)
-		if currentCount > 0 {
-			result = append(result, movies...)
+			currentCount = len(movies)
+			if currentCount > 0 {
+				tmp := []MovieItem{}
+				for _, movie := range movies {
+					tmp = append(tmp, MovieItem{
+						Watchers: 0,
+						Movie:    movie,
+					})
+				}
+				result = append(result, tmp...)
+			}
+		} else {
+			movies, err := c.fetchPagedList(url, params)
+
+			if err != nil {
+				c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
+			}
+
+			currentCount = len(movies)
+			if currentCount > 0 {
+				result = append(result, movies...)
+			}
 		}
 		page++
 	}
