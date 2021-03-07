@@ -127,6 +127,13 @@ type Movie struct {
 	AddOptions  map[string]interface{} `json:"addOptions"`
 }
 
+type ExcludedMovie struct {
+	ID         int    `json:"id"`
+	MovieTitle string `json:"movieTitle"`
+	MovieYear  int    `json:"movieYear"`
+	TmdbID     int    `json:"tmdbId"`
+}
+
 type Errors []struct {
 	PropertyName                      string        `json:"propertyName"`
 	ErrorMessage                      string        `json:"errorMessage"`
@@ -274,6 +281,21 @@ func (c *Client) GetMovies() (*[]Movie, error) {
 
 	if resp != nil && resp.IsSuccess() {
 		result := resp.Result().(*[]Movie)
+		return result, nil
+	}
+
+	return nil, err
+}
+
+func (c *Client) GetExcludedMovies() (*[]ExcludedMovie, error) {
+
+	resp, err := c.
+		initRequest().
+		SetResult([]ExcludedMovie{}).
+		Get(c.getEndpointUrl("api/exclusions"))
+
+	if resp != nil && resp.IsSuccess() {
+		result := resp.Result().(*[]ExcludedMovie)
 		return result, nil
 	}
 

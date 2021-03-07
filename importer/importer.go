@@ -49,6 +49,7 @@ func NewImporter(config *viper.Viper, logger *zerolog.Logger,
 		validator:  validator.NewRuleValidatior(logger),
 		processed:  map[string]bool{},
 		cache:      map[string]*radarr.Movie{},
+		excluded:   map[string]*radarr.ExcludedMovie{},
 	}
 
 	importer.initCache()
@@ -65,14 +66,20 @@ type Importer struct {
 	dispatcher *notification.Dispatcher
 	processed  map[string]bool
 	cache      map[string]*radarr.Movie
+	excluded   map[string]*radarr.ExcludedMovie
 }
 
 func (i *Importer) initCache() {
 	movies, err := i.radarr.GetMovies()
+	excluded, err := i.radarr.GetExcludedMovies()
 	if err == nil {
 		i.logger.Info().Int("Count", len(*movies)).Msg("Init radarr cache")
+		i.logger.Info().Int("Count", len(*excluded)).Msg("Excluded movies in radarr")
 		for _, movie := range *movies {
 			i.cache[movie.ImdbId] = &movie
+		}
+		for _, excluded := range *excluded {
+			i.excluded[excluded.MovieTitle] = &excluded
 		}
 	} else {
 		i.logger.Error().Err(err).Msg("Can't load radarr movies.")
@@ -162,10 +169,14 @@ func (i *Importer) processProviderItem(listName string, item *provider.ListItem)
 	approved, added = false, false
 	_, processed := i.processed[item.Imdb]
 	_, exist := i.cache[item.Imdb]
+	_, excluded := i.excluded[item.Title]
 	if exist {
 		i.logger.Info().Msgf("Movie already '%s (%d)' to radarr.", item.Title, item.Year)
 	}
-	if !processed && !exist {
+	if excluded {
+		i.logger.Info().Msgf("Movie '%s (%d)' excluded from radarr.", item.Title, item.Year)
+	}
+	if !processed && !exist && !excluded {
 		i.logger.Info().Str("ImdbId", item.Imdb).Str("slug", itemSlug).
 			Msgf("Processing list item '%s (%d)'.", item.Title, item.Year)
 		i.processed[item.Imdb] = true
