@@ -67,8 +67,12 @@ var importCmd = &cobra.Command{
 
 			dispatcher := notification.NewNotificationDispatcher(logger.GetLogger())
 
-			dispatcher.RegisterAgent(gotify.NewGotifyAgent(viper.Sub("notifications.gotify"), logger.GetLogger(), restyClient))
-			dispatcher.RegisterAgent(slack.NewSlackAgent(viper.Sub("notifications.slack"), logger.GetLogger(), restyClient))
+			if viper.IsSet("notifications.gotify") {
+				dispatcher.RegisterAgent(gotify.NewGotifyAgent(viper.Sub("notifications.gotify"), logger.GetLogger(), restyClient))
+			}
+			if viper.IsSet("notifications.slack") {
+				dispatcher.RegisterAgent(slack.NewSlackAgent(viper.Sub("notifications.slack"), logger.GetLogger(), restyClient))
+			}
 
 			config := viper.Sub("importer")
 			if viper.IsSet("revision") {
