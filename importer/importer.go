@@ -48,8 +48,8 @@ func NewImporter(config *viper.Viper, logger *zerolog.Logger,
 		dispatcher: dispatcher,
 		validator:  validator.NewRuleValidatior(logger),
 		processed:  map[string]bool{},
-		cache:      map[string]*radarr.Movie{},
-		excluded:   map[string]*radarr.ExcludedMovie{},
+		added:      map[string]bool{},
+		excluded:   map[string]bool{},
 	}
 
 	importer.initCache()
@@ -65,8 +65,8 @@ type Importer struct {
 	validator  *validator.RuleValidatior
 	dispatcher *notification.Dispatcher
 	processed  map[string]bool
-	cache      map[string]*radarr.Movie
-	excluded   map[string]*radarr.ExcludedMovie
+	added      map[string]bool
+	excluded   map[string]bool
 }
 
 func (i *Importer) initCache() {
@@ -76,10 +76,11 @@ func (i *Importer) initCache() {
 		i.logger.Info().Int("Count", len(*movies)).Msg("Init radarr cache")
 		i.logger.Info().Int("Count", len(*excluded)).Msg("Excluded movies in radarr")
 		for _, movie := range *movies {
-			i.cache[movie.ImdbId] = &movie
+			i.added[movie.ImdbId] = true
 		}
 		for _, excluded := range *excluded {
-			i.excluded[excluded.MovieTitle] = &excluded
+			i.excluded[excluded.MovieTitle] = true
+			i.excluded[fmt.Sprintf("tmdb:%d", excluded.TmdbID)] = true
 		}
 	} else {
 		i.logger.Error().Err(err).Msg("Can't load radarr movies.")
@@ -168,8 +169,11 @@ func (i *Importer) processProviderItem(listName string, item *provider.ListItem)
 
 	approved, added = false, false
 	_, processed := i.processed[item.Imdb]
-	_, exist := i.cache[item.Imdb]
+	_, exist := i.added[item.Imdb]
 	_, excluded := i.excluded[item.Title]
+	if !excluded {
+		_, excluded = i.excluded[fmt.Sprintf("tmdb:%d", item.Tmdb)]
+	}
 	if exist {
 		i.logger.Info().Msgf("Movie already '%s (%d)' to radarr.", item.Title, item.Year)
 	}
