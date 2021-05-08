@@ -161,7 +161,7 @@ func (c *Client) validateApiKey() (bool, error) {
 	resp, err := c.
 		initRequest().
 		SetResult(map[string]interface{}{}).
-		Get(c.getEndpointUrl("api/system/status"))
+		Get(c.getEndpointUrl("api/v3/system/status"))
 	if err != nil {
 		return false, err
 	}
@@ -185,7 +185,7 @@ func (c *Client) getProfileId() (int, error) {
 	resp, err := c.
 		initRequest().
 		SetResult([]map[string]interface{}{}).
-		Get(c.getEndpointUrl("api/profile"))
+		Get(c.getEndpointUrl("api/v3/qualityProfile"))
 	if err != nil {
 		return 0, err
 	}
@@ -220,7 +220,7 @@ func (c *Client) AddMovie(movie *Movie) error {
 		initRequest().
 		SetBody(movie).
 		SetError(Errors{}).
-		Post(c.getEndpointUrl("api/movie"))
+		Post(c.getEndpointUrl("api/v3/movie"))
 
 	if resp.StatusCode() == 400 {
 		message := ""
@@ -242,7 +242,7 @@ func (c *Client) LookupMovieByImdb(imdbId string) (*Movie, error) {
 			"imdbId": imdbId,
 		}).
 		SetResult(Movie{}).
-		Get(c.getEndpointUrl("api/movie/lookup/imdb"))
+		Get(c.getEndpointUrl("api/v3/movie/lookup/imdb"))
 
 	if resp != nil && resp.IsSuccess() {
 		c.logger.Debug().RawJSON("response", []byte(resp.String())).Msg("Lookup search")
@@ -261,7 +261,7 @@ func (c *Client) LookupMovieByTmdb(tmdbId string) (*Movie, error) {
 			"tmdbId": tmdbId,
 		}).
 		SetResult(Movie{}).
-		Get(c.getEndpointUrl("api/movie/lookup/tmdb"))
+		Get(c.getEndpointUrl("api/v3/movie/lookup/tmdb"))
 
 	if resp != nil && resp.IsSuccess() {
 		c.logger.Debug().RawJSON("response", []byte(resp.String())).Msg("Lookup search")
@@ -277,7 +277,7 @@ func (c *Client) GetMovies() (*[]Movie, error) {
 	resp, err := c.
 		initRequest().
 		SetResult([]Movie{}).
-		Get(c.getEndpointUrl("api/movie"))
+		Get(c.getEndpointUrl("api/v3/movie"))
 
 	if resp != nil && resp.IsSuccess() {
 		result := resp.Result().(*[]Movie)
@@ -292,7 +292,7 @@ func (c *Client) GetExcludedMovies() (*[]ExcludedMovie, error) {
 	resp, err := c.
 		initRequest().
 		SetResult([]ExcludedMovie{}).
-		Get(c.getEndpointUrl("api/exclusions"))
+		Get(c.getEndpointUrl("api/v3/exclusions"))
 
 	if resp != nil && resp.IsSuccess() {
 		result := resp.Result().(*[]ExcludedMovie)
