@@ -345,6 +345,22 @@ logger:
 
 ## Usage
 
+### Docker
+
+Using stable releases:
+
+```
+docker run -d --name='Seekerr' -v '<path to data>':'/config':'rw' 'lightglitch/seekerr:stable'
+```
+
+Using master:
+
+```
+docker run -d --name='Seekerr' -v '<path to data>':'/config':'rw' 'lightglitch/seekerr:latest'
+```
+
+You need to create your config file before running the docker image.
+
 ### General
 
 ```
