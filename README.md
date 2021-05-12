@@ -13,6 +13,7 @@ Tool to add new movies to Radarr based on RSS, IMDB and Trakt lists.
   - [Introduction](#introduction)
   - [Configuration](#configuration)
     - [Sample Configuration](#sample-configuration)
+    - [CRON](#cron)
     - [Services](#services)
     - [Filters](#filters)
     - [Lists](#lists)
@@ -55,6 +56,8 @@ logger:
   color: true # active color on console
   human: true # store file log as human readable
   file: "var/log/seekerr.%Y%m%d.log" # %Y%m%d is used for rotation. leave empty to disable file log
+
+cron: "0 */2 * * *"
 
 services:
   resty:
@@ -127,6 +130,31 @@ importer:
       type: "trakt" # rss | trakt | imdb
       url: "https://trakt.tv/users/movistapp/lists/now-playing?sort=rank,asc"
 ```
+### CRON
+
+Added a new cron command that runs the import based on the schedule in the configuration:
+  ```yaml
+  cron: "0 */2 * * *"
+  ```
+
+A cron expression represents a set of times, using 5 space-separated fields.
+
+Field name   | Mandatory? | Allowed values  | Allowed special characters
+----------   | ---------- | --------------  | --------------------------
+Minutes      | Yes        | 0-59            | * / , -
+Hours        | Yes        | 0-23            | * / , -
+Day of month | Yes        | 1-31            | * / , - ?
+Month        | Yes        | 1-12 or JAN-DEC | * / , -
+Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?
+
+Note: Month and Day-of-week field values are case insensitive. "SUN", "Sun", and "sun" are equally accepted.
+
+Then execute the following command:
+
+```
+seekerr cron
+```
+
 
 ### Services
 
@@ -364,6 +392,27 @@ Global Flags:
 ```
 
 `-l`, `--list` -  The name of the list that is configured in the file seekerr.yaml. If empty imports all lists.
+
+
+### Cron
+
+```
+seekerr cron --help
+```
+
+```
+Import the movies found in the lists to radarr using the schedule on the config file.
+
+Usage:
+  seekerr cron [flags]
+
+Flags:
+  -h, --help              help for cron
+  -s, --schedule string   Run with this cron schedule
+
+Global Flags:
+      --config string   config file (default is config/seekerr.yaml)
+```
 
 ### TODO
 

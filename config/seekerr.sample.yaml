@@ -5,6 +5,17 @@ logger:
   human: true # store log as human readable
   file: "var/log/seekerr.%Y%m%d.log" # %Y%m%d is used for rotation. leave empty to disable file log
 
+#  A cron expression represents a set of times, using 5 space-separated fields.
+#  Field name   | Mandatory? | Allowed values  | Allowed special characters
+#  ----------   | ---------- | --------------  | --------------------------
+#  Minutes      | Yes        | 0-59            | * / , -
+#  Hours        | Yes        | 0-23            | * / , -
+#  Day of month | Yes        | 1-31            | * / , - ?
+#  Month        | Yes        | 1-12 or JAN-DEC | * / , -
+#  Day of week  | Yes        | 0-6 or SUN-SAT  | * / , - ?
+
+cron: "0 */2 * * *"
+
 services:
   resty:
     debug: false
