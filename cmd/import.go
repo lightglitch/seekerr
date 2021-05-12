@@ -49,6 +49,10 @@ var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import the movies found in the lists to radarr.",
 	Long:  ``,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		initConfig()
+		logger.InitLogger()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if viper.ConfigFileUsed() != "" {
