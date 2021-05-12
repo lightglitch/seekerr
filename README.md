@@ -20,6 +20,7 @@ Tool to add new movies to Radarr based on RSS, IMDB and Trakt lists.
     - [Notifications](#notifications)
     - [Logger](#logger)
   - [Usage](#usage)
+    - [Docker](#docker)
     - [General](#general)
     - [Import](#import)
     - [TODO](#todo)
