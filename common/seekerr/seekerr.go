@@ -60,10 +60,10 @@ func NewInfo() Info {
 		CommitHash: commitHash,
 		BuildDate:  buildDate,
 		Version: Version{
-			Major:  0,
-			Minor:  1,
+			Major:  1,
+			Minor:  0,
 			Patch:  0,
-			Suffix: "-DEV",
+			Suffix: "",
 		},
 	}
 }
