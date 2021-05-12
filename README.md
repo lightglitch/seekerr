@@ -433,7 +433,7 @@ Global Flags:
 ### TODO
 
 - [ ] Tests
-- [ ] Docker integration with guessIt
+- [ ] Support Series and Sonarr
 
 ### References and Inspiration
 
