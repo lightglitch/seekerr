@@ -3,7 +3,7 @@ module github.com/lightglitch/seekerr
 go 1.14
 
 require (
-	github.com/PuerkitoBio/goquery v1.6.1
+	github.com/PuerkitoBio/goquery v1.7.0
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/antonmedv/expr v1.8.9
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
