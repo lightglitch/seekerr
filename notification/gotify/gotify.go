@@ -73,17 +73,22 @@ func (g *GotifyAgent) getMessage(event notification.Event) interface{} {
 		message["message"] = fmt.Sprintf("Finish processing all feeds, added %d movies", event.Data["added"])
 	case notification.ADDED_MOVIE:
 		message["title"] = fmt.Sprintf("Seekerr: %s", event.Data["name"])
+		message["extras"] = map[string]map[string]string {
+			"client::display": {
+				"contentType": "text/markdown",
+			},
+		}
+
 		movie := event.Data["movie"].(*radarr.Movie)
 		item := event.Data["item"].(*provider.ListItem)
-		text := fmt.Sprintf("Added new movie '%s (%d)', ratings: imdb %.1f/10, metacritic %d/100, rotten tomatoes %d%%",
-			movie.Title, movie.Year, item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes)
+		url := fmt.Sprintf("https://www.themoviedb.org/movie/%d-%s", movie.TmdbID, movie.TitleSlug)
+		if movie.ImdbId != "" {
+			url = fmt.Sprintf("https://www.imdb.com/title/%s", movie.ImdbId)
+		}
+		text := fmt.Sprintf("Added new movie '[%s (%d)](%s)', ratings: imdb %.1f/10, metacritic %d/100, rotten tomatoes %d%%",
+			movie.Title, movie.Year, url, item.Ratings.Imdb, item.Ratings.Metacritic, item.Ratings.RottenTomatoes)
 		if len(movie.Images) > 0 {
 			text += fmt.Sprintf("  ![%s](%s)", movie.Title, movie.Images[0].URL)
-			message["extras"] = map[string]map[string]string {
-				"client::display": {
-					"contentType": "text/markdown",
-				},
-			}
 		}
 		message["message"] = text
 	case notification.REVISION_MOVIE:

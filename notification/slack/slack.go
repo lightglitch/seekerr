@@ -106,6 +106,9 @@ func (g *SlackAgent) getMessage(event notification.Event) interface{} {
 		movie := event.Data["movie"].(*radarr.Movie)
 		item := event.Data["item"].(*provider.ListItem)
 		url := fmt.Sprintf("https://www.themoviedb.org/movie/%d-%s", movie.TmdbID, movie.TitleSlug)
+		if movie.ImdbId != "" {
+			url = fmt.Sprintf("https://www.imdb.com/title/%s", movie.ImdbId)
+		}
 
 		message.Blocks = append(message.Blocks, SlackBlock{
 			Type: "section",
