@@ -65,8 +65,9 @@ type Client struct {
 }
 
 type MovieItem struct {
-	Watchers int   `json:"watchers"`
-	Movie    Movie `json:"movie"`
+	Watchers  int   `json:"watchers"`
+	UserCount int   `json:"user_count"`
+	Movie     Movie `json:"movie"`
 }
 
 // Movie struct for the Trakt v2 API
@@ -90,7 +91,7 @@ func (c *Client) initRequest() *resty.Request {
 		})
 }
 
-func (c *Client) fetchPagedList(url string, queryParams map[string]string) ([]MovieItem, error) {
+func (c *Client) fetchMovieItemPagedList(url string, queryParams map[string]string) ([]MovieItem, error) {
 
 	c.logger.Debug().Interface("params", queryParams).Msgf("Fetching trakt list: %s", url)
 
@@ -145,7 +146,9 @@ func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 			"limit": strconv.Itoa(pageLimit),
 		}
 
-		if strings.HasSuffix(url, "/movies/popular") {
+
+		movieItems := []MovieItem{}
+		if strings.HasSuffix(url, "/movies/popular") || strings.Contains(url, "/movies/recommended/") {
 			movies, err := c.fetchMoviePagedList(url, params)
 
 			if err != nil {
@@ -154,27 +157,25 @@ func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 
 			currentCount = len(movies)
 			if currentCount > 0 {
-				tmp := []MovieItem{}
 				for _, movie := range movies {
-					tmp = append(tmp, MovieItem{
-						Watchers: 0,
+					movieItems = append(movieItems, MovieItem{
 						Movie:    movie,
 					})
 				}
-				result = append(result, tmp...)
 			}
 		} else {
-			movies, err := c.fetchPagedList(url, params)
+			var err error = nil
+			movieItems, err = c.fetchMovieItemPagedList(url, params)
 
 			if err != nil {
 				c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
 			}
-
-			currentCount = len(movies)
-			if currentCount > 0 {
-				result = append(result, movies...)
-			}
 		}
+		currentCount = len(movieItems)
+		if currentCount > 0 {
+			result = append(result, movieItems...)
+		}
+
 		page++
 	}
 
