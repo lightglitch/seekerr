@@ -65,13 +65,19 @@ type Client struct {
 }
 
 type MovieItem struct {
-	Watchers  int   `json:"watchers"`
-	UserCount int   `json:"user_count"`
-	Movie     Movie `json:"movie"`
+	Watchers  int  `json:"watchers"`
+	UserCount int  `json:"user_count"`
+	Movie     Item `json:"movie"`
 }
 
-// Movie struct for the Trakt v2 API
-type Movie struct {
+type ShowItem struct {
+	Watchers  int  `json:"watchers"`
+	UserCount int  `json:"user_count"`
+	Show      Item `json:"show"`
+}
+
+// Generic Item struct for the Trakt v2 API
+type Item struct {
 	IDs struct {
 		Imdb  string `json:"imdb"`
 		Slug  string `json:"slug"`
@@ -89,6 +95,25 @@ func (c *Client) initRequest() *resty.Request {
 			"trakt-api-version": "2",
 			"trakt-api-key":     c.apiKey,
 		})
+}
+
+func (c *Client) fetchShowItemPagedList(url string, queryParams map[string]string) ([]ShowItem, error) {
+
+	c.logger.Debug().Interface("params", queryParams).Msgf("Fetching trakt list: %s", url)
+
+	result := []ShowItem{}
+
+	resp, err := c.
+		initRequest().
+		SetQueryParams(queryParams).
+		SetResult([]ShowItem{}).
+		Get(url)
+
+	if resp != nil && resp.IsSuccess() {
+		result = *resp.Result().(*[]ShowItem)
+	}
+
+	return result, err
 }
 
 func (c *Client) fetchMovieItemPagedList(url string, queryParams map[string]string) ([]MovieItem, error) {
@@ -110,27 +135,27 @@ func (c *Client) fetchMovieItemPagedList(url string, queryParams map[string]stri
 	return result, err
 }
 
-func (c *Client) fetchMoviePagedList(url string, queryParams map[string]string) ([]Movie, error) {
+func (c *Client) fetchItemPagedList(url string, queryParams map[string]string) ([]Item, error) {
 
 	c.logger.Debug().Interface("params", queryParams).Msgf("Fetching trakt list: %s", url)
 
-	result := []Movie{}
+	result := []Item{}
 
 	resp, err := c.
 		initRequest().
 		SetQueryParams(queryParams).
-		SetResult([]Movie{}).
+		SetResult([]Item{}).
 		Get(url)
 
 	if resp != nil && resp.IsSuccess() {
-		result = *resp.Result().(*[]Movie)
+		result = *resp.Result().(*[]Item)
 	}
 
 	return result, err
 }
 
-func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
-	result := []MovieItem{}
+func (c *Client) FetchList(url string, limit int) ([]Item, error) {
+	result := []Item{}
 
 	page := 1
 	pageLimit := TRAKT_PAGE_LIMIT
@@ -146,34 +171,30 @@ func (c *Client) FetchList(url string, limit int) ([]MovieItem, error) {
 			"limit": strconv.Itoa(pageLimit),
 		}
 
-
-		movieItems := []MovieItem{}
+		items := []Item{}
 		if strings.HasSuffix(url, "/movies/popular") || strings.Contains(url, "/movies/recommended/") {
-			movies, err := c.fetchMoviePagedList(url, params)
+			var err error = nil
+			items, err = c.fetchItemPagedList(url, params)
 
 			if err != nil {
 				c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
-			}
-
-			currentCount = len(movies)
-			if currentCount > 0 {
-				for _, movie := range movies {
-					movieItems = append(movieItems, MovieItem{
-						Movie:    movie,
-					})
-				}
 			}
 		} else {
-			var err error = nil
-			movieItems, err = c.fetchMovieItemPagedList(url, params)
+			movieItems, err := c.fetchMovieItemPagedList(url, params)
 
 			if err != nil {
 				c.logger.Error().Err(err).Interface("params", params).Msg("Fetching paged movies")
 			}
+			currentCount = len(movieItems)
+			if currentCount > 0 {
+				for _, item := range movieItems {
+					items = append(items, item.Movie)
+				}
+			}
 		}
-		currentCount = len(movieItems)
+		currentCount = len(items)
 		if currentCount > 0 {
-			result = append(result, movieItems...)
+			result = append(result, items...)
 		}
 
 		page++

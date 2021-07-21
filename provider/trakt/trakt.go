@@ -71,10 +71,10 @@ func (p *Provider) GetItems(config provider.ListConfig) ([]provider.ListItem, er
 
 	for _, item := range movies {
 		result = append(result, provider.ListItem{
-			Title: item.Movie.Title,
-			Year:  item.Movie.Year,
-			Imdb:  item.Movie.IDs.Imdb,
-			Tmdb:  item.Movie.IDs.Tmdb,
+			Title: item.Title,
+			Year:  item.Year,
+			Imdb:  item.IDs.Imdb,
+			Tmdb:  item.IDs.Tmdb,
 		})
 	}
 
