@@ -90,23 +90,32 @@ func (i *Importer) initCache() {
 func (i *Importer) getListsConfigurations() map[string]provider.ListConfig {
 	lists := map[string]provider.ListConfig{}
 
-	i.logger.Debug().Interface("config", i.config.GetStringMap("filter")).Msgf("Debugging lists global filters.")
+	if i.config.IsSet("filter") {
+		i.logger.Debug().Interface("config", i.config.GetStringMap("filter")).Msgf("Debugging lists global filters.")
+	}
+
+	if !i.config.IsSet("lists") {
+		return lists
+	}
 
 	listsConfig := i.config.Sub("lists")
-
-	//listsConfig.MergeConfigMap( filterConfig. )
 
 	for listName, _ := range listsConfig.AllSettings() {
 		i.logger.Info().Msgf("Processing list '%s' configuration.", listName)
 
 		listConfig := listsConfig.Sub(listName)
-		filterConfig := i.config.Sub("filter")
 
-		filterConfig.MergeConfigMap(listConfig.GetStringMap("filter"))
+		if i.config.IsSet("filter") {
+			filterConfig := i.config.Sub("filter")
 
-		listConfig.MergeConfigMap(map[string]interface{}{
-			"filter": filterConfig.AllSettings(),
-		})
+			if listConfig.IsSet("filter") {
+				filterConfig.MergeConfigMap(listConfig.GetStringMap("filter"))
+			}
+
+			listConfig.MergeConfigMap(map[string]interface{}{
+				"filter": filterConfig.AllSettings(),
+			})
+		}
 
 		config := provider.ListConfig{}
 
