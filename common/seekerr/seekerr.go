@@ -62,7 +62,7 @@ func NewInfo() Info {
 		Version: Version{
 			Major:  1,
 			Minor:  0,
-			Patch:  1,
+			Patch:  2,
 			Suffix: "",
 		},
 	}
