@@ -71,19 +71,28 @@ type Importer struct {
 
 func (i *Importer) initCache() {
 	movies, err := i.radarr.GetMovies()
-	excluded, err := i.radarr.GetExcludedMovies()
-	if err == nil {
+	if err != nil {
+		i.logger.Error().Err(err).Msg("Can't load radarr movies.")
+	}
+
+	if movies != nil {
 		i.logger.Info().Int("Count", len(*movies)).Msg("Init radarr cache")
-		i.logger.Info().Int("Count", len(*excluded)).Msg("Excluded movies in radarr")
 		for _, movie := range *movies {
 			i.added[movie.ImdbId] = true
 		}
+	}
+
+	excluded, err := i.radarr.GetExcludedMovies()
+	if err != nil {
+		i.logger.Error().Err(err).Msg("Can't load radarr excluded movies.")
+	}
+
+	if excluded != nil {
+		i.logger.Info().Int("Count", len(*excluded)).Msg("Excluded movies in radarr")
 		for _, excluded := range *excluded {
 			i.excluded[excluded.MovieTitle] = true
 			i.excluded[fmt.Sprintf("tmdb:%d", excluded.TmdbID)] = true
 		}
-	} else {
-		i.logger.Error().Err(err).Msg("Can't load radarr movies.")
 	}
 }
 

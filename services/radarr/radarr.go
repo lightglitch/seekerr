@@ -282,6 +282,8 @@ func (c *Client) GetMovies() (*[]Movie, error) {
 	if resp != nil && resp.IsSuccess() {
 		result := resp.Result().(*[]Movie)
 		return result, nil
+	} else if resp != nil && resp.IsError()  {
+		return nil, errors.New(resp.String())
 	}
 
 	return nil, err
@@ -297,6 +299,8 @@ func (c *Client) GetExcludedMovies() (*[]ExcludedMovie, error) {
 	if resp != nil && resp.IsSuccess() {
 		result := resp.Result().(*[]ExcludedMovie)
 		return result, nil
+	} else if resp != nil && resp.IsError()  {
+		return nil, errors.New(resp.String())
 	}
 
 	return nil, err
