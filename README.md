@@ -441,4 +441,6 @@ Global Flags:
 - [traktarr](https://github.com/l3uddz/traktarr/): Traktarr uses Trakt.tv to find shows and movies to add in to Sonarr and Radarr, respectively.
 - [Radarr](https://github.com/Radarr/Radarr): A fork of Sonarr to work with movies à la Couchpotato.
 
+
+- Seekerr logo used icons made by **phatplus** and **freepik** from [www.flaticon.com](https://www.flaticon.com/)
 ---
