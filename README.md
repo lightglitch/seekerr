@@ -4,7 +4,7 @@ Tool to add new movies to Radarr based on RSS, IMDB and Trakt lists.
 [![GitHub issues](https://img.shields.io/github/issues/lightglitch/seekerr.svg?maxAge=60&style=flat-square)](https://github.com/lightglitch/seekerr/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/lightglitch/seekerr.svg?maxAge=60&style=flat-square)](https://github.com/lightglitch/seekerr/pulls)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg?maxAge=60&style=flat-square)](https://opensource.org/licenses/MIT)
-[![Copyright 2020-2020](https://img.shields.io/badge/copyright-2020-blue.svg?maxAge=60&style=flat-square)](https://github.com/lightglitch/seekerr)
+[![Copyright 2020-2022](https://img.shields.io/badge/copyright-2022-blue.svg?maxAge=60&style=flat-square)](https://github.com/lightglitch/seekerr)
 [![Github Releases](https://img.shields.io/github/downloads/lightglitch/seekerr/total.svg?maxAge=60&style=flat-square)](https://github.com/lightglitch/seekerr/releases/)
 
 ---
