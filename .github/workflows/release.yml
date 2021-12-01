@@ -1,4 +1,4 @@
-name: Release with goreleaser
+name: Release new stable version
 on:
   push:
     tags:
