@@ -28,6 +28,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"net/http"
+	"time"
 )
 
 type restyLogger struct {
@@ -49,17 +50,21 @@ func (l *restyLogger) Debugf(format string, v ...interface{}) {
 func GetRestyClient(config *viper.Viper) *resty.Client {
 	c := resty.New()
 
-	c.SetDebug(config.GetBool("debug"))
+	c.SetDebug(false)
+	c.SetTimeout(20 * time.Second)
+	c.SetRetryCount(0)
+	c.SetRetryWaitTime(1 * time.Second)
+	c.SetRetryMaxWaitTime(10 * time.Second)
 
-	c.SetTimeout(config.GetDuration("timeout"))
+	if config != nil {
+		c.SetDebug(config.GetBool("debug"))
+		c.SetTimeout(config.GetDuration("timeout"))
+		c.SetRetryCount(config.GetInt("retry"))
+		c.SetRetryWaitTime(config.GetDuration("retryWaitTime"))
+		c.SetRetryMaxWaitTime(config.GetDuration("retryMaxWaitTime"))
+	}
 
 	c.SetLogger(&restyLogger{logger: logger.GetLogger()})
-
-	c.SetRetryCount(config.GetInt("retry"))
-
-	c.SetRetryWaitTime(config.GetDuration("retryWaitTime"))
-
-	c.SetRetryMaxWaitTime(config.GetDuration("retryMaxWaitTime"))
 
 	c.AddRetryCondition(func(r *resty.Response, err error) bool {
 		return r.StatusCode() == http.StatusTooManyRequests

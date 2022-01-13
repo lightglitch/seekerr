@@ -44,7 +44,6 @@ import (
 
 var listName string
 
-// importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import the movies found in the lists to radarr.",
@@ -56,7 +55,11 @@ var importCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if viper.ConfigFileUsed() != "" {
-			restyClient := http.GetRestyClient(viper.Sub("services.resty"))
+			var restyConfig *viper.Viper = nil
+			if viper.IsSet("services.resty") {
+				restyConfig = viper.Sub("services.resty")
+			}
+			restyClient := http.GetRestyClient(restyConfig)
 
 			radarr := radarr.NewClient(viper.Sub("services.radarr"), logger.GetLogger(), restyClient)
 			omdb := omdb.NewClient(viper.Sub("services.omdb"), logger.GetLogger(), restyClient)
