@@ -24,11 +24,10 @@ package logger
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
 	"github.com/utahta/go-cronowriter"
+	"os"
 )
 
 var (
@@ -38,7 +37,9 @@ var (
 func InitLogger() {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	zerolog.TimeFieldFormat = viper.GetString("logger.time_format")
+	if viper.GetString("logger.time_format") != "" {
+		zerolog.TimeFieldFormat = viper.GetString("logger.time_format")
+	}
 
 	level, err := zerolog.ParseLevel(viper.GetString("logger.level"))
 	if err != nil {
@@ -47,7 +48,7 @@ func InitLogger() {
 		zerolog.SetGlobalLevel(level)
 	}
 
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: viper.GetString("logger.time_format"),  NoColor: !viper.GetBool("logger.color")}
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: viper.GetString("logger.time_format"), NoColor: !viper.GetBool("logger.color")}
 	multi := zerolog.MultiLevelWriter(consoleWriter)
 
 	if viper.GetString("logger.file") != "" {
@@ -55,7 +56,7 @@ func InitLogger() {
 		multi = zerolog.MultiLevelWriter(consoleWriter, filelog)
 
 		if viper.GetBool("logger.human") {
-			fileConsoleWriter := zerolog.ConsoleWriter{Out: filelog, TimeFormat: viper.GetString("logger.time_format"),  NoColor: true}
+			fileConsoleWriter := zerolog.ConsoleWriter{Out: filelog, TimeFormat: viper.GetString("logger.time_format"), NoColor: true}
 			multi = zerolog.MultiLevelWriter(consoleWriter, fileConsoleWriter)
 		}
 	}
