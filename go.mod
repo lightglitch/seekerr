@@ -9,7 +9,7 @@ require (
 	github.com/gosimple/slug v1.12.0
 	github.com/mmcdole/gofeed v1.1.3
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rs/zerolog v1.26.1
+	github.com/rs/zerolog v1.27.0
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.12.0
 	github.com/utahta/go-cronowriter v1.2.0
