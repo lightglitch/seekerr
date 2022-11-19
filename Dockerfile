@@ -1,6 +1,6 @@
 # GitHub:       https://github.com/lightglitch/seekerr
 
-FROM golang:1.16-alpine3.14 AS build
+FROM golang:1.18-alpine3.16 AS build
 
 ARG CGO=1
 ENV CGO_ENABLED=${CGO}
@@ -17,7 +17,7 @@ RUN go build -o seekerr main.go
 
 # ---
 
-FROM  python:3.7-alpine3.14
+FROM  python:3.9-alpine3.16
 
 RUN pip install guessit
 
