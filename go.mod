@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
-	github.com/antonmedv/expr v1.12.1
+	github.com/antonmedv/expr v1.12.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gosimple/slug v1.13.1
 	github.com/mmcdole/gofeed v1.2.0
